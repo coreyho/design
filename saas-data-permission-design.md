@@ -46,7 +46,6 @@
 - 查询执行统一走同一个 MyBatis 拦截器，避免多入口绕过。
 - 当租户规模、组织复杂度增长后，再平滑演进为控制面/运行面分离架构。
 
-
 ---
 
 ## 3. 权限模型（ER）
@@ -276,12 +275,9 @@ WHERE status = ?
 - `PolicyValidator`：字段白名单、操作符合法性、子查询深度校验。
 - `PolicyVersionService`：版本生成、灰度发布、回滚。
 - `RuleRepository`：读取规则快照。
-- `RuleCache`：缓存 `appId + roleSetHash + version` -> `CompiledPolicy`。
-- `DslCompiler`：DSL -> Policy AST -> SQL Fragment（带参数位）。
-- `MybatisPermissionInterceptor`：SQL AST 合并。
-- `MaskingEngine`：结果字段脱敏（手机号、身份证、薪资）。
 
 ## 7.2 数据结构建议（Java）
+
 
 ```java
 interface Condition {
@@ -329,6 +325,7 @@ class CompileContext {
 3. 编译结果缓存：`appId + roleSetHash + resource -> CompiledPolicy`
 
 ## 9.2 失效策略
+
 - 在单体服务内发布新版本后，直接刷新本地缓存版本号。
 - 如后续拆分多节点，再通过 MQ/配置中心广播失效 cache key。
 - 采用双缓冲：新版本预热成功后原子切换。
