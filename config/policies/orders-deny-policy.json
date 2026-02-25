@@ -1,0 +1,24 @@
+{
+  "id": "orders-row-deny-v3",
+  "effect": "DENY",
+  "resource_code": "orders",
+  "policy_type": "ROW",
+  "dsl": {
+    "type": "group",
+    "operator": "OR",
+    "children": [
+      {
+        "type": "compare",
+        "field": "status",
+        "operator": "EQ",
+        "value": "archived"
+      },
+      {
+        "type": "compare",
+        "field": "is_deleted",
+        "operator": "EQ",
+        "value": 1
+      }
+    ]
+  }
+}

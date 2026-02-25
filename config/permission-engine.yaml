@@ -1,0 +1,44 @@
+app:
+  id: lowcode-billing
+  resource-scan:
+    - orders
+    - employee
+
+permission:
+  fail-closed: true
+  default-effect: deny
+  max-subquery-depth: 3
+  max-affected-rows:
+    update: 500
+    delete: 500
+  require-business-filter: true
+
+cache:
+  user-role-ttl-seconds: 300
+  rule-snapshot-ttl-seconds: 60
+  compiled-policy-ttl-seconds: 120
+
+publish:
+  channel: mq
+  topic: permission-policy-publish
+  warmup-enabled: true
+  rollback-enabled: true
+
+mybatis:
+  interceptor:
+    enabled: true
+    include-command-types:
+      - SELECT
+      - UPDATE
+      - DELETE
+    audited-mapper-packages:
+      - com.acme.order.mapper
+      - com.acme.report.mapper
+
+masking:
+  enabled: true
+  default-strategy: keep-prefix-3-mask-middle
+  field-strategies:
+    mobile: mobile-mask
+    id_card: idcard-mask
+    salary: salary-range-mask

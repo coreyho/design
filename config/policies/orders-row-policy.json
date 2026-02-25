@@ -1,0 +1,36 @@
+{
+  "id": "orders-row-allow-v3",
+  "effect": "ALLOW",
+  "resource_code": "orders",
+  "policy_type": "ROW",
+  "dsl": {
+    "type": "group",
+    "operator": "AND",
+    "children": [
+      {
+        "type": "compare",
+        "field": "tenant_id",
+        "operator": "EQ",
+        "value": "${tenant.id}"
+      },
+      {
+        "type": "group",
+        "operator": "OR",
+        "children": [
+          {
+            "type": "compare",
+            "field": "owner_id",
+            "operator": "EQ",
+            "value": "${current_user.id}"
+          },
+          {
+            "type": "compare",
+            "field": "status",
+            "operator": "EQ",
+            "value": "published"
+          }
+        ]
+      }
+    ]
+  }
+}
