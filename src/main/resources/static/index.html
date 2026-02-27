@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS数据权限规则配置</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/script.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SaaS数据权限规则配置</h1>
+        </header>
+        
+        <main>
+            <div class="form-section">
+                <h2>权限规则表达式配置</h2>
+                
+                <div class="form-group">
+                    <label for="policyName">策略名称:</label>
+                    <input type="text" id="policyName" placeholder="输入策略名称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="resourceType">资源类型:</label>
+                    <select id="resourceType">
+                        <option value="">选择资源类型</option>
+                        <option value="customer">客户</option>
+                        <option value="order">订单</option>
+                        <option value="product">产品</option>
+                        <option value="employee">员工</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="role">角色:</label>
+                    <select id="role">
+                        <option value="">选择角色</option>
+                        <option value="admin">管理员</option>
+                        <option value="manager">经理</option>
+                        <option value="employee">员工</option>
+                        <option value="guest">访客</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="operation">操作类型:</label>
+                    <select id="operation">
+                        <option value="read">读取</option>
+                        <option value="write">写入</option>
+                        <option value="delete">删除</option>
+                    </select>
+                </div>
+                
+                <div class="expression-builder">
+                    <h3>权限表达式构建器</h3>
+                    
+                    <div class="condition-row">
+                        <select class="condition-type">
+                            <option value="field">字段条件</option>
+                            <option value="relation">关系条件</option>
+                            <option value="function">函数条件</option>
+                        </select>
+                        
+                        <select class="field-name">
+                            <option value="">选择字段</option>
+                            <option value="department_id">部门ID</option>
+                            <option value="creator_id">创建者ID</option>
+                            <option value="region">区域</option>
+                            <option value="status">状态</option>
+                        </select>
+                        
+                        <select class="operator">
+                            <option value="eq">等于</option>
+                            <option value="ne">不等于</option>
+                            <option value="gt">大于</option>
+                            <option value="lt">小于</option>
+                            <option value="in">在列表中</option>
+                            <option value="like">模糊匹配</option>
+                        </select>
+                        
+                        <input type="text" class="value-input" placeholder="输入值">
+                        
+                        <button class="add-condition-btn">+</button>
+                        <button class="remove-condition-btn">-</button>
+                    </div>
+                </div>
+                
+                <div class="expression-preview">
+                    <h3>表达式预览</h3>
+                    <div id="expressionOutput" class="output-box">(department_id = ?)</div>
+                </div>
+                
+                <div class="form-actions">
+                    <button id="saveBtn" class="btn-primary">保存规则</button>
+                    <button id="previewBtn" class="btn-secondary">预览SQL</button>
+                    <button id="resetBtn" class="btn-reset">重置</button>
+                </div>
+            </div>
+            
+            <div class="rules-list">
+                <h2>已配置规则</h2>
+                <table id="rulesTable">
+                    <thead>
+                        <tr>
+                            <th>策略名称</th>
+                            <th>资源类型</th>
+                            <th>角色</th>
+                            <th>操作</th>
+                            <th>表达式</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 规则列表将动态填充 -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
