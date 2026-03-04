@@ -21,27 +21,30 @@
 
 ---
 
-## 2. 总体架构
+## 2. 总体架构（先不拆分控制面/运行面）
 
 ```text
-                控制面（Control Plane）
+                 单体权限服务（Monolith）
 ┌────────────────────────────────────────────────────┐
-│ 可视化策略编辑器  DSL校验器  规则版本管理  发布中心     │
-└───────────────────────┬────────────────────────────┘
-                        │ 发布（MQ / 配置中心）
-                        ▼
-                数据面（Data Plane）
-┌────────────────────────────────────────────────────┐
-│ Permission SDK                                     │
-│  ├─ RuleCache（规则缓存）                           │
-│  ├─ PolicyCompiler（DSL -> AST）                   │
-│  ├─ RoleMerger（多角色合并）                        │
-│  ├─ SqlInjector（MyBatis Interceptor）             │
-│  └─ MaskingEngine（列脱敏）                         │
+│ 权限可视化配置 + DSL 管理 + 发布 + 执行引擎            │
+│                                                    │
+│  ├─ PolicyDesigner（规则配置）                       │
+│  ├─ PolicyStore（DSL 存储/版本）                     │
+│  ├─ RuleCache（规则缓存）                            │
+│  ├─ PolicyCompiler（DSL -> AST）                    │
+│  ├─ RoleMerger（多角色合并）                         │
+│  ├─ SqlInjector（MyBatis Interceptor）              │
+│  └─ MaskingEngine（列脱敏）                          │
 └───────────────────────┬────────────────────────────┘
                         ▼
                    MyBatis / DB
 ```
+
+## 2.1 当前阶段落地建议（单体优先）
+- 当前阶段将“规则配置、规则发布、规则执行”放在同一服务内，先保证能力闭环。
+- 规则发布可先用本地版本号 + 数据库表实现，不强依赖 MQ/配置中心。
+- 查询执行统一走同一个 MyBatis 拦截器，避免多入口绕过。
+- 当租户规模、组织复杂度增长后，再平滑演进为控制面/运行面分离架构。
 
 ---
 
@@ -267,19 +270,14 @@ WHERE status = ?
 
 ## 7. 关键实现模块
 
-## 7.1 控制面
+## 7.1 单体服务内部模块划分
 - `PolicyDesigner`：可视化策略编辑器（条件树 UI）。
 - `PolicyValidator`：字段白名单、操作符合法性、子查询深度校验。
 - `PolicyVersionService`：版本生成、灰度发布、回滚。
+- `RuleRepository`：读取规则快照。
 
-## 7.2 数据面 SDK
-- `RuleRepository`：拉取规则快照。
-- `RuleCache`：缓存 `appId + roleSetHash + version` -> `CompiledPolicy`。
-- `DslCompiler`：DSL -> Policy AST -> SQL Fragment（带参数位）。
-- `MybatisPermissionInterceptor`：SQL AST 合并。
-- `MaskingEngine`：结果字段脱敏（手机号、身份证、薪资）。
+## 7.2 数据结构建议（Java）
 
-## 7.3 数据结构建议（Java）
 
 ```java
 interface Condition {
@@ -327,8 +325,9 @@ class CompileContext {
 3. 编译结果缓存：`appId + roleSetHash + resource -> CompiledPolicy`
 
 ## 9.2 失效策略
-- 控制面发布新版本后，通过 MQ 广播版本号。
-- 数据面收到事件后失效对应 cache key。
+
+- 在单体服务内发布新版本后，直接刷新本地缓存版本号。
+- 如后续拆分多节点，再通过 MQ/配置中心广播失效 cache key。
 - 采用双缓冲：新版本预热成功后原子切换。
 
 ## 9.3 性能指标（建议）
@@ -403,7 +402,7 @@ public class MybatisPermissionInterceptor implements Interceptor {
   - **可视化构造 + 结构化 DSL 存储 + MyBatis AST 注入执行**。
   - 行级权限全部下推数据库。
   - 多角色按 `ALLOW OR` 合并，并预留 `DENY` 机制。
-  - 通过版本化与缓存机制支撑多集群动态更新。
+  - 先以单体服务内的版本化与缓存机制落地，后续可扩展为多集群动态更新。
 
 该方案可从 MVP 快速起步，并平滑演进到企业级权限引擎。
 
